@@ -46,17 +46,6 @@ export default async function signup(
   const randomBytes = crypto.randomBytes(48)
   const randomToken = randomBytes.toString('hex')
   const signupId = await argon.hash(`${username}${password}${randomToken}`)
-  try {
-    await SignupAttempt.create({
-      id: signupId,
-      username,
-      password,
-    })
-  } catch (e) {
-    console.log(e)
-    res.status(500).json({ error: 'Unknown error' })
-    return
-  }
 
   try {
     const verificationMail = await mg.messages
@@ -66,26 +55,30 @@ export default async function signup(
         subject: "URL Shortener verification",
         text: 'Click on the following link to complete your signup, ' +
         'note that this link will expire in 1 hour' +
-        `\n${process.env.HOST}/verify-email/${signupId}`,
+        `\n${process.env.HOST}/verify-email/${encodeURIComponent(signupId)}`,
       })
     if (verificationMail.status !== 200) {
       throw new Error(verificationMail.message)
     }
+
+    try {
+      await SignupAttempt.create({
+        id: signupId,
+        username,
+        password,
+      })
+    } catch (e) {
+      console.log(e)
+      res.status(500).json({ error: 'Unknown error' })
+      return
+    }
+
     res.json({
       message: `Verification email sent to ${username}`
     })
 
-  } catch (e) {
+  } catch (e: any) {
     console.log(e)
     res.status(e.status || 500).json({ error: e.message || 'Unknown error' })
   }
-
-  // const phash = await argon.hash(password)
-  // try {
-  //   await SignupAttempt.create({ username, password: phash })
-  // } catch (e) {
-  //   res.status(400).json({ error: e })
-  //   return
-  // }
-  // console.log('user created', username)
 }
