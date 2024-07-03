@@ -2,14 +2,12 @@
 
 import {
   Container,
-  CssBaseline,
-  Box,
-  Typography,
   Alert,
   Snackbar,
   AlertTitle,
-  Avatar,
-  Divider
+  Tabs,
+  Tab,
+  Box,
 } from '@mui/material'
 
 import React, { useEffect, useState } from 'react'
@@ -19,6 +17,16 @@ import moment from 'moment'
 
 import { useRouter } from 'next/navigation'
 import { User } from '@/types/user'
+
+import Edit from './edit'
+import UserInfo from './user'
+import UserCards from './cards'
+
+interface TabPanelProps {
+  children?: React.ReactNode
+  index: number
+  value: number
+}
 
 export default function Profile() {
   const [alertError, setAlertError] = useState<string>('')
@@ -32,29 +40,29 @@ export default function Profile() {
     })
   }, [])
 
+  const [value, setValue] = useState(0)
+
+  const handleChange = (event: React.SyntheticEvent, newValue: number) => {
+    setValue(newValue);
+  }
+
   return (
     <>
-      <Container>
-        <CssBaseline />
-        <Box sx={{ marginTop: 8, display: 'flex', alignItems: 'center' }} >
-          <Avatar sx={{ width: 110, height: 110 }} >
-            <Typography component='h1' variant='h2'>
-              {userInfo?.username?.[0]}
-            </Typography>
-          </Avatar>
-          <Divider orientation='vertical' variant="middle" />
-          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '10px 10px 10px 10px', marginTop: '10px' }} >
-            <Typography component='h1' variant='h3'>
-              @{userInfo?.username}
-            </Typography>
-            <Divider />
-            <Typography component='center' variant='h5' justifyContent='right' display='flex'>
-              {userInfo?.email}
-            </Typography>
-            <Typography component='center' variant='overline' justifyContent='right' display='flex'>
-              Joined {moment(userInfo?.createdAt).format('MMM YYYY')}
-            </Typography>
+      <Container maxWidth='xl'>
+        <UserInfo user={userInfo} />
+        <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <Box sx={{ borderBottom: 1, borderColor: 'divider', width: '100%' }}>
+            <Tabs value={value} onChange={handleChange} aria-label="basic tabs example">
+              <Tab label="Profile and visibility" {...allyProps(0)} />
+              <Tab label="Cards" {...allyProps(1)} />
+            </Tabs>
           </Box>
+          <CustomTabPanel value={value} index={0}>
+            <Edit user={userInfo} />
+          </CustomTabPanel>
+          <CustomTabPanel value={value} index={1}>
+            <UserCards user={userInfo} />
+          </CustomTabPanel>
         </Box>
       </Container>
       {alertError && (
@@ -84,3 +92,26 @@ export default function Profile() {
     }
   }
 }
+
+function CustomTabPanel(props: TabPanelProps) {
+  const { children, value, index, ...other } = props
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`simple-tabpanel-${index}`}
+      aria-labelledby={`simple-tab-${index}`}
+      {...other}
+    >
+      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
+    </div>
+  )
+}
+
+function allyProps(index: number) {
+  return {
+    id: `simple-tab-${index}`,
+    'aria-controls': `simple-tabpanel-${index}`,
+  }
+}
+
