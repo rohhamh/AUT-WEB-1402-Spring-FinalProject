@@ -4,7 +4,22 @@ const nextConfig = {
     webpack(config) {
         config.experiments = { ...config.experiments, topLevelAwait: true };
         return config;
-    }
+    },
+    publicRuntimeConfig: {
+        backendUrl: 'http://localhost:8080',
+    },
+    async rewrites() {
+        return [
+            {
+                source: '/api/:path*',
+                destination: 'http://localhost:8080/api/:path*',
+            },
+            {
+                source: '/:path*',
+                destination: 'http://localhost:8080/api/:path*',
+            },
+        ]
+    },
 }
 
 module.exports = nextConfig

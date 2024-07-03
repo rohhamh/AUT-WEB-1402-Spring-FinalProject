@@ -16,7 +16,7 @@ import {
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined'
 import { createTheme, ThemeProvider } from '@mui/material/styles'
 import { useState } from 'react'
-import axios from 'axios'
+import { axios } from '@/utils'
 import { useRouter } from 'next/navigation'
 
 const defaultTheme = createTheme()
@@ -24,6 +24,7 @@ const defaultTheme = createTheme()
 export default function SignUp() {
   const [passwordError, setPasswordError] = useState('')
   const [passwordRepeatError, setPasswordRepeatError] = useState('')
+  const [usernameError, setUsernameError] = useState('')
   const [emailError, setEmailError] = useState('')
   const [alertError, setAlertError] = useState('')
   const [alertSignupSuccess, setAlertSignupSuccess] = useState('')
@@ -55,6 +56,19 @@ export default function SignUp() {
             sx={{ mt: 3 }}
           >
             <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <TextField
+                  required
+                  fullWidth
+                  id='username'
+                  label='Username'
+                  name='username'
+                  autoComplete='username'
+                  error={!!usernameError.length}
+                  helperText={usernameError}
+                  autoFocus
+                />
+              </Grid>
               <Grid item xs={12}>
                 <TextField
                   required
@@ -105,7 +119,7 @@ export default function SignUp() {
             </Button>
             <Grid container justifyContent='flex-end'>
               <Grid item>
-                <Link href='/login' variant='body2'>
+                <Link href='/auth-login' variant='body2'>
                   Already have an account? Sign in
                 </Link>
               </Grid>
@@ -141,9 +155,17 @@ export default function SignUp() {
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const data = new FormData(event.currentTarget)
+    const username = data.get('username')
     const email = data.get('email')
     const password = data.get('password')
     const passwordRepeat = data.get('password-repeat')
+
+    if (!/\w+/.test(username as string)) {
+      setUsernameError('invalid username')
+      return
+    }
+    setUsernameError('')
+
     if (!/\w+@\w+\.\w{2,}/.test(email as string)) {
       setEmailError('invalid email')
       return
@@ -168,17 +190,19 @@ export default function SignUp() {
     }
     const signup = async () => {
       const data = {
-        username: email,
+        username,
+        email,
         password
       }
-      return (await axios.post('/api/signup', data)).data
+      return (await axios.post('/auth/signup', data)).data
     }
     signup()
       .then((result) => {
         setAlertSignupSuccess(result.message || '')
+        router.push('/auth-login')
       })
       .catch((e) => {
-        setAlertError(e.response?.data?.error || e.message)
+        setAlertError(e.response?.data?.message || e.message)
       })
   }
 }

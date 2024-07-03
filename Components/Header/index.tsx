@@ -1,3 +1,5 @@
+'use client'
+
 import {
 	AppBar,
 	Toolbar,
@@ -7,22 +9,25 @@ import {
 	Tooltip,
 	Menu,
 	IconButton,
+	Button,
 	MenuItem,
-	Button
+	Avatar
 } from '@mui/material'
 import AdbIcon from '@mui/icons-material/Adb'
 import MenuIcon from '@mui/icons-material/Menu'
-import AccountCircleIcon from '@mui/icons-material/AccountCircle'
 import { useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { User } from '@/types/user'
 
 const pages = [
-	{ title: 'Create URL', href: '/dashboard' },
-	{ title: 'URL History', href: '/history' }
+	{ title: 'Workspaces', href: '/workspaces' },
+	{ title: 'Create', href: '/create-workspace' },
 ]
-const settings = ['Logout']
 
-export default function Header() {
+export default function Header({ user }: { user: User | undefined }) {
+	const router = useRouter()
+
 	const [anchorElNav, setAnchorElNav] = useState<null | HTMLElement>(null)
 	const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null)
 
@@ -40,6 +45,10 @@ export default function Header() {
 	const handleCloseUserMenu = () => {
 		setAnchorElUser(null)
 	}
+
+	const settings = ['Profile', 'Logout']
+	const settingsActions = [() => { router.push('/dashboard/profile') }, handleCloseUserMenu]
+
 
 	return (
 		<AppBar position='static'>
@@ -61,7 +70,7 @@ export default function Header() {
 							textDecoration: 'none'
 						}}
 					>
-						URL Shortener
+						Trello
 					</Typography>
 					<Box sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' } }}>
 						<IconButton
@@ -132,12 +141,16 @@ export default function Header() {
 					</Box>
 
 					<Box sx={{ flexGrow: 0 }}>
-						<Tooltip title='Open settings'>
+						<Tooltip title='User settings'>
 							<IconButton
 								onClick={handleOpenUserMenu}
-								sx={{ p: 0, transform: 'scale(1.5)' }}
+								sx={{ p: 0, transform: 'scale(2.0)' }}
 							>
-								<AccountCircleIcon />
+								<Typography component='h1' variant='h1'>
+									<Avatar sx={{ width: 20, height: 20 }}>
+										{user?.username?.[0] || ''}
+									</Avatar>
+								</ Typography>
 							</IconButton>
 						</Tooltip>
 						<Menu
@@ -156,8 +169,8 @@ export default function Header() {
 							open={Boolean(anchorElUser)}
 							onClose={handleCloseUserMenu}
 						>
-							{settings.map((setting) => (
-								<MenuItem key={setting} onClick={handleCloseUserMenu}>
+							{settings.map((setting, i) => (
+								<MenuItem key={setting} onClick={settingsActions[i]}>
 									<Typography textAlign='center'>{setting}</Typography>
 								</MenuItem>
 							))}

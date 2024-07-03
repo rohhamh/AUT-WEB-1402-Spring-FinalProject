@@ -17,13 +17,13 @@ import {
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined'
 import { createTheme, ThemeProvider } from '@mui/material/styles'
 import { useEffect, useState } from 'react'
-import axios from 'axios'
+import { axios } from '@/utils'
 import { useRouter } from 'next/navigation'
 
 const defaultTheme = createTheme()
 
 export default function Login({ searchParams }: { searchParams: { message: string } }) {
-	const [emailError, setEmailError] = useState('')
+	const [usernameError, setUsernameError] = useState('')
 	const [passwordError, setPasswordError] = useState('')
 	const [alertError, setAlertError] = useState('')
 	const [alertSuccess, setAlertSuccess] = useState('')
@@ -64,12 +64,12 @@ export default function Login({ searchParams }: { searchParams: { message: strin
 							margin='normal'
 							required
 							fullWidth
-							id='email'
-							label='Email Address'
-							name='email'
-							autoComplete='email'
-							error={!!emailError.length}
-							helperText={emailError}
+							id='username'
+							label='Username'
+							name='username'
+							autoComplete='username'
+							error={!!usernameError.length}
+							helperText={usernameError}
 							autoFocus
 						/>
 						<TextField
@@ -136,14 +136,14 @@ export default function Login({ searchParams }: { searchParams: { message: strin
 	function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
 		event.preventDefault()
 		const data = new FormData(event.currentTarget)
-		const email = data.get('email')
+		const username = data.get('username')
 		const password = data.get('password')
 
-		if (!/\w+@\w+\.\w{2,}/.test(email as string)) {
-			setEmailError('Enter a valid email')
+		if (!/\w+/.test(username as string)) {
+			setUsernameError('Enter a valid username')
 			return
 		}
-		setEmailError('')
+		setUsernameError('')
 		if (!password) {
 			setPasswordError('Password cannot be empty')
 			return
@@ -151,15 +151,15 @@ export default function Login({ searchParams }: { searchParams: { message: strin
 		setPasswordError('')
 		const login = async () => {
 			const data = {
-				username: email,
+				username,
 				password
 			}
-			return (await axios.post('/api/login', data)).data
+			return (await axios.post('/auth/login', data)).data
 		}
 
 		login()
 			.then((_) => {
-				router.push('/dashboard')
+				router.push('/dashboard/workspaces')
 			})
 			.catch((e) => {
 				setAlertError(e.response?.data?.error || e.message)
